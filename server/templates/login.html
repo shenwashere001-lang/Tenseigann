@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sohbet Uygulaması - Giriş</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-bg">
+    <div class="auth-container">
+        <div class="auth-box glass-panel">
+            <h1 id="auth-title">Hoş Geldiniz</h1>
+            <p id="auth-subtitle">Devam etmek için giriş yapın</p>
+            
+            <div id="alert-box" class="hidden"></div>
+            
+            <form id="auth-form">
+                <div class="input-group">
+                    <label for="username">Kullanıcı Adı</label>
+                    <input type="text" id="username" required autocomplete="off" placeholder="Kullanıcı adınızı girin">
+                </div>
+                <div class="input-group">
+                    <label for="password">Şifre</label>
+                    <input type="password" id="password" required placeholder="Şifrenizi girin">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" id="submit-btn">Giriş Yap</button>
+            </form>
+            
+            <p class="auth-switch">
+                <span id="switch-text">Hesabınız yok mu?</span>
+                <a href="#" id="switch-link">Kayıt Ol</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let isLogin = true;
+        const form = document.getElementById('auth-form');
+        const switchLink = document.getElementById('switch-link');
+        const title = document.getElementById('auth-title');
+        const subtitle = document.getElementById('auth-subtitle');
+        const submitBtn = document.getElementById('submit-btn');
+        const switchText = document.getElementById('switch-text');
+        const alertBox = document.getElementById('alert-box');
+
+        switchLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLogin = !isLogin;
+            
+            if (isLogin) {
+                title.textContent = 'Hoş Geldiniz';
+                subtitle.textContent = 'Devam etmek için giriş yapın';
+                submitBtn.textContent = 'Giriş Yap';
+                switchText.textContent = 'Hesabınız yok mu?';
+                switchLink.textContent = 'Kayıt Ol';
+            } else {
+                title.textContent = 'Kayıt Ol';
+                subtitle.textContent = 'Hesap oluşturun';
+                submitBtn.textContent = 'Kayıt Ol';
+                switchText.textContent = 'Zaten hesabınız var mı?';
+                switchLink.textContent = 'Giriş Yap';
+            }
+            alertBox.classList.add('hidden');
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const endpoint = isLogin ? '/login' : '/register';
+            
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    if (isLogin) {
+                        window.location.href = '/chat';
+                    } else {
+                        showAlert('Kayıt başarılı! Lütfen giriş yapın.', 'success');
+                        switchLink.click();
+                    }
+                } else {
+                    showAlert(data.message, 'error');
+                }
+            } catch (err) {
+                showAlert('Bir hata oluştu.', 'error');
+            }
+        });
+
+        function showAlert(msg, type) {
+            alertBox.textContent = msg;
+            alertBox.className = `alert alert-${type}`;
+            alertBox.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
